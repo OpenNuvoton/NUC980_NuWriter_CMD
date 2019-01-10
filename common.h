@@ -48,8 +48,8 @@
 #define DOWNLOAD			0x10
 #define DOWNLOAD_RUN	0x11
 
-#define RUN_PROGARM					0x21
-#define RUN_PROGARM_VERIFY	0x24
+#define RUN_PROGRAM					0x21
+#define RUN_PROGRAM_VERIFY	0x24
 #define RUN_READ						0x22
 #define RUN_ERASE						0x23
 

@@ -354,7 +354,7 @@ int UXmodem_NAND(void)
 			printf("Read ... Passed\n");
 		}
 
-		if(nudata.run==RUN_PROGARM || nudata.run==RUN_PROGARM_VERIFY ) { //Burn Image
+		if(nudata.run==RUN_PROGRAM || nudata.run==RUN_PROGRAM_VERIFY ) { //Burn Image
 			for(idx=0; idx<nudata.image_num; idx++) {
 				if(idx>0) {
 					if(NUC_OpenUsb()<0) return -1;
@@ -490,7 +490,7 @@ int UXmodem_NAND(void)
 				if(bResult<0) goto EXIT;
 				show_progressbar(100);
 				printf("Write image%d %s ... Passed\n",idx,TypeT[nudata.image[idx].image_idx].pName);
-				if((nudata.run==RUN_PROGARM_VERIFY)) {
+				if((nudata.run==RUN_PROGRAM_VERIFY)) {
 					unsigned char temp[BUF_SIZE];
 
 					if(NUC_OpenUsb()<0) return -1;
@@ -692,7 +692,7 @@ int UXmodem_SPINAND(void)
 			printf("Read ... Passed\n");
 		}
 
-		if(nudata.run==RUN_PROGARM || nudata.run==RUN_PROGARM_VERIFY) { //Burn Image
+		if(nudata.run==RUN_PROGRAM || nudata.run==RUN_PROGRAM_VERIFY) { //Burn Image
 			for(idx=0; idx<nudata.image_num; idx++) {
 				if(idx>0) {
 					if(NUC_OpenUsb()<0) return -1;
@@ -835,7 +835,7 @@ int UXmodem_SPINAND(void)
 				if(bResult<0) goto EXIT;
 				show_progressbar(100);
 				printf("Write image%d %s ... Passed\n",idx,TypeT[nudata.image[idx].image_idx].pName);
-				if((nudata.run==RUN_PROGARM_VERIFY)) {
+				if((nudata.run==RUN_PROGRAM_VERIFY)) {
 					unsigned char temp[BUF_SIZE];
 
 					if(NUC_OpenUsb()<0) return -1;
@@ -1039,7 +1039,7 @@ int UXmodem_SPI(void)
 			printf("Read ... Passed\n");
 		}
 
-		if(nudata.run==RUN_PROGARM || nudata.run==RUN_PROGARM_VERIFY) { //Burn Image
+		if(nudata.run==RUN_PROGRAM || nudata.run==RUN_PROGRAM_VERIFY) { //Burn Image
 			for(idx=0; idx<nudata.image_num; idx++) {
 				if(idx>0) {
 					if(NUC_OpenUsb()<0) return -1;
@@ -1186,7 +1186,7 @@ int UXmodem_SPI(void)
 				}
 				show_progressbar(100);
 				printf("Write image%d %s ... Passed\n",idx,TypeT[nudata.image[idx].image_idx].pName);
-				if((nudata.run==RUN_PROGARM_VERIFY)) {
+				if((nudata.run==RUN_PROGRAM_VERIFY)) {
 					unsigned char temp[BUF_SIZE];
 
 					if(NUC_OpenUsb()<0) return -1;
@@ -1388,7 +1388,7 @@ int UXmodem_SD(void)
 			printf("Read ... Passed\n");
 		}
 
-		if(nudata.run==RUN_PROGARM || nudata.run==RUN_PROGARM_VERIFY) { //Burn Image
+		if(nudata.run==RUN_PROGRAM || nudata.run==RUN_PROGRAM_VERIFY) { //Burn Image
 			for(idx=0; idx<nudata.image_num; idx++) {
 				if(idx>0) {
 					int i;
@@ -1523,7 +1523,7 @@ int UXmodem_SD(void)
 				if(bResult<0) goto EXIT;
 				show_progressbar(100);
 				printf("Write image%d %s ... Passed\n",idx,TypeT[nudata.image[idx].image_idx].pName);
-				if((nudata.run==RUN_PROGARM_VERIFY)) {
+				if((nudata.run==RUN_PROGRAM_VERIFY)) {
 					unsigned char temp[BUF_SIZE];
 					if(NUC_OpenUsb()<0) return -1;
 					NUC_SetType(0,MMC);
