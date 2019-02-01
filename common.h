@@ -81,6 +81,7 @@ typedef struct _ERASE_T {
 
 typedef struct _SDRAM_T {
 	char sdram_path[256];
+	char dtb_path[256];
 	unsigned int opetion;
 	unsigned int dtb_addr;
 	unsigned int exe_addr;
@@ -101,6 +102,7 @@ typedef struct _NU_DATA_T {
 } NU_DATA_T;
 
 struct _NU_DATA_T nudata;
+NORBOOT_MMC_HEAD mmc_head;
 
 
 #define RUN_ON_XUSB 0x08FF0001

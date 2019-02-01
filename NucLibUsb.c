@@ -34,7 +34,7 @@ int NUC_ReadPipe(int id,unsigned char *buf,int len)
 	ret = libusb_bulk_transfer(handle, USB_ENDPOINT_IN, buf, len,
 	                           &nread, USB_TIMEOUT);
 	if (ret) {
-		MSG_DEBUG("ERROR in bulk read: %d\n", ret);
+		MSG_DEBUG("ERROR in bulk read: %s,nread %d\n", libusb_error_name(ret),nread);
 		return -1;
 	} else {
 		//MSG_DEBUG("receive %d bytes from device\n", nread);
@@ -62,26 +62,9 @@ int NUC_WritePipe(int id,unsigned char *buf,int len)
 	//probably unsafe to use n twice...
 	ret = libusb_bulk_transfer(handle, USB_ENDPOINT_OUT, buf, len, &nwrite, USB_TIMEOUT);
 	//Error handling
-	switch(ret) {
-	case 0:
-		//MSG_DEBUG("send %d bytes to device\n", len);
-		return 0;
-	case LIBUSB_ERROR_TIMEOUT:
-		printf("ERROR in bulk write: %d Timeout\n", ret);
-		break;
-	case LIBUSB_ERROR_PIPE:
-		printf("ERROR in bulk write: %d Pipe\n", ret);
-		break;
-	case LIBUSB_ERROR_OVERFLOW:
-		printf("ERROR in bulk write: %d Overflow\n", ret);
-		break;
-	case LIBUSB_ERROR_NO_DEVICE:
-		printf("ERROR in bulk write: %d No Device\n", ret);
-		break;
-	default:
-		printf("ERROR in bulk write: %d\n", ret);
-		break;
-
+	if (ret<0) {
+		MSG_DEBUG("ERROR in bulk write: %s\n", libusb_error_name(ret));
+		return -1;
 	}
 	return 0;
 }
@@ -101,6 +84,7 @@ int NUC_OpenUsb(void)
 		libusb_exit(NULL);
 		return -1;
 	}
+	libusb_reset_device(handle);
 #ifdef _WIN32
 	libusb_set_auto_detach_kernel_driver(handle, 1);
 	ret = libusb_claim_interface(handle, 0);

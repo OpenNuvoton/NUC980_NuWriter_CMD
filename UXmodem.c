@@ -53,6 +53,84 @@ unsigned char *GetDDRFormat(unsigned int *len)
 	return ddrbuf;
 }
 
+int UXmodem_DTB(void)
+{
+	FILE *fp=NULL;
+	int bResult,pos;
+	unsigned int scnt,rcnt,file_len,ack,total;
+	unsigned char *pbuf,buf[BUF_SIZE];
+	SDRAM_RAW_TYPEHEAD fhead;
+
+	if(NUC_OpenUsb()<0) {
+		printf("NUC_OpenUsb failed\n");
+		return -1;
+	}
+	NUC_SetType(0,SDRAM);
+
+	MSG_DEBUG("dtb_path = %s\n",nudata.sdram->dtb_path);
+	fp=fopen(nudata.sdram->dtb_path, "rb");
+	if(fp==NULL) {
+		printf("Open write File Error(-w %s) \n",nudata.sdram->dtb_path);
+		goto EXIT;
+	}
+	fseek(fp,0,SEEK_END);
+	file_len=ftell(fp);
+	fseek(fp,0,SEEK_SET);
+
+	if(!file_len) {
+		fclose(fp);
+		printf("File length is zero\n");
+		goto EXIT;
+	}
+
+	MSG_DEBUG("dtb_addr=%x\n",nudata.sdram->dtb_addr);
+	fhead.flag=WRITE_ACTION;
+	fhead.filelen=file_len;
+	fhead.address=nudata.sdram->dtb_addr;
+	fhead.dtbaddress = 0;
+	//if(nudata.sdram->opetion==DOWNLOAD_RUN) {
+	//	fhead.address |= NEED_AUTORUN;
+	//}
+
+	//if(nudata.sdram->dtb_addr!=0) {
+	//	fhead.dtbaddress = nudata.sdram->dtb_addr | NEED_AUTORUN;
+	//}
+	NUC_WritePipe(0,(unsigned char*)&fhead,sizeof(SDRAM_RAW_TYPEHEAD));
+	NUC_ReadPipe(0,(unsigned char *)&ack,(int)sizeof(unsigned int));
+	pbuf=buf;
+	scnt=file_len/BUF_SIZE;
+	rcnt=file_len%BUF_SIZE;
+	total=0;
+	while(scnt>0) {
+		fread(pbuf,1,BUF_SIZE,fp);
+		bResult=NUC_WritePipe(0,(unsigned char*)pbuf,BUF_SIZE);
+		if(bResult<0)	goto EXIT;
+		total+=BUF_SIZE;
+		pos=(int)(((float)(((float)total/(float)file_len))*100));
+		bResult=NUC_ReadPipe(0,(UCHAR *)&ack,4);
+		if(bResult<0 || ack!=BUF_SIZE) {
+			goto EXIT;
+		}
+		scnt--;
+		show_progressbar(pos);
+	}
+	if(rcnt>0) {
+		fread(pbuf,1,rcnt,fp);
+		bResult=NUC_WritePipe(0,(unsigned char*)pbuf,rcnt);
+		if(bResult<0) goto EXIT;
+		total+=rcnt;
+		bResult=NUC_ReadPipe(0,(UCHAR *)&ack,4);
+		if(bResult<0) goto EXIT;
+	}
+	show_progressbar(100);
+	fclose(fp);
+	return 0;
+EXIT:
+	NUC_CloseUsb();
+	if(fp!=NULL) fclose(fp);
+	return -1;
+
+}
 int UXmodem_SDRAM(void)
 {
 	FILE *fp=NULL;
@@ -61,7 +139,16 @@ int UXmodem_SDRAM(void)
 	unsigned char *pbuf,buf[BUF_SIZE];
 	SDRAM_RAW_TYPEHEAD fhead;
 
-	if(NUC_OpenUsb()<0) return -1;
+	if(nudata.sdram->dtb_addr!=0) {
+		MSG_DEBUG("Burn DTB binary files\n");
+		if(UXmodem_DTB()!=0)
+			goto EXIT;
+	}
+
+	if(NUC_OpenUsb()<0) {
+		printf("NUC_OpenUsb failed\n");
+		return -1;
+	}
 	NUC_SetType(0,SDRAM);
 
 	fp=fopen(nudata.sdram->sdram_path, "rb");
@@ -94,7 +181,6 @@ int UXmodem_SDRAM(void)
 	}
 	NUC_WritePipe(0,(unsigned char*)&fhead,sizeof(SDRAM_RAW_TYPEHEAD));
 	NUC_ReadPipe(0,(unsigned char *)&ack,(int)sizeof(unsigned int));
-
 	pbuf=buf;
 	scnt=file_len/BUF_SIZE;
 	rcnt=file_len%BUF_SIZE;
@@ -117,8 +203,10 @@ int UXmodem_SDRAM(void)
 		bResult=NUC_WritePipe(0,(unsigned char*)pbuf,rcnt);
 		if(bResult<0) goto EXIT;
 		total+=rcnt;
-		bResult=NUC_ReadPipe(0,(UCHAR *)&ack,4);
-		if(bResult<0 || ack!=rcnt) goto EXIT;
+		if(nudata.sdram->opetion!=DOWNLOAD_RUN) {
+			bResult=NUC_ReadPipe(0,(UCHAR *)&ack,4);
+			if(bResult<0) goto EXIT;
+		}
 	}
 	show_progressbar(100);
 	fclose(fp);
@@ -1319,6 +1407,11 @@ int UXmodem_SD(void)
 	int blockNum;
 	m_fhead=malloc(sizeof(NORBOOT_MMC_HEAD));
 
+	m_fhead->PartitionNum = mmc_head.PartitionNum;
+	m_fhead->Partition1Size = mmc_head.Partition1Size;
+	m_fhead->Partition2Size = mmc_head.Partition2Size;
+	m_fhead->Partition3Size = mmc_head.Partition3Size;
+	m_fhead->Partition4Size = mmc_head.Partition4Size;
 	if(NUC_OpenUsb()<0) return -1;
 	NUC_SetType(0,MMC);
 

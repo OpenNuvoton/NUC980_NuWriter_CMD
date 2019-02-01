@@ -36,6 +36,7 @@ char* load_ddr(char *FilePath,int *len)
 		strncpy((char *)cvt,(char *)tmp,(unsigned long)ptmp-(unsigned long)tmp);
 		cvt[(unsigned long)ptmp-(unsigned long)tmp]='\0';
 		val=strtoul(cvt,NULL,0);
+		if(val==0xb0000000) continue;
 		*puint32_t=val;
 		puint32_t++;
 		tmpbuf_size+=4;
@@ -47,23 +48,6 @@ char* load_ddr(char *FilePath,int *len)
 		tmpbuf_size+=4;
 	}
 
-	dummy = (*len/8)%4;
-	if(dummy==0)
-		dummy1=2;
-	else if(dummy==1)
-		dummy1=1;
-	else if(dummy=2)
-		dummy1=0;
-	else if(dummy==3)
-		dummy1=3;
-	for(i=0; i<dummy1; i++) {
-		*puint32_t=0x55aa55aa;
-		puint32_t++;
-		tmpbuf_size+=4;
-		*puint32_t=1;
-		puint32_t++;
-		tmpbuf_size+=4;
-	}
 	*len=tmpbuf_size;
 
 	fclose(pf);

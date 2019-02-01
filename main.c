@@ -52,6 +52,7 @@ int ParsingIni(void)
 	long n,IsYes;
 	int i,idx;
 
+	nudata.user_def = (INFO_T *)malloc(sizeof(INFO_T));
 	/* Parsing [RUN] */
 	n = ini_gets("RUN", "mode", "dummy", str, sizearray(str), inifile);
 	mode = (MODE_T *)ModeT;
@@ -86,9 +87,12 @@ int ParsingIni(void)
 		n = ini_getl(ModeT[nudata.mode.id].pName, "exe_addr", -1, inifile);
 		nudata.sdram->exe_addr = n;
 		n = ini_gets(ModeT[nudata.mode.id].pName, "using_dtb", "dummy", str, sizearray(str), inifile);
-		if(n==2)
+		if(n==2) {
 			nudata.sdram->dtb_addr = 0;
-		else {
+		} else
+			n = ini_gets(ModeT[nudata.mode.id].pName, "dtb_path", "dummy", str, sizearray(str), inifile);
+		strcpy(nudata.sdram->dtb_path,str);
+		{
 			n = ini_getl(ModeT[nudata.mode.id].pName, "dtb_addr", -1, inifile);
 			nudata.sdram->dtb_addr  = n;
 		}
@@ -165,7 +169,6 @@ int ParsingIni(void)
 		}
 
 		/* Parsing User defined */
-		nudata.user_def = (INFO_T *)malloc(sizeof(INFO_T));
 		IsYes = ini_gets(ModeT[nudata.mode.id].pName, "using_user_defined", "dummy", str, sizearray(str), inifile);
 
 		nudata.user_def->EMMC_uReserved = 1000 * 0x200;
@@ -177,6 +180,21 @@ int ParsingIni(void)
 
 			n = ini_getl(ModeT[nudata.mode.id].pName, "reserved_size", -1, inifile);
 			nudata.user_def->EMMC_uReserved = n * 0x200;
+
+			n = ini_getl(ModeT[nudata.mode.id].pName, "PartitionNum", -1, inifile);
+			mmc_head.PartitionNum = n ;
+
+			n = ini_getl(ModeT[nudata.mode.id].pName, "Partition1Size", -1, inifile);
+			mmc_head.Partition1Size = n ;
+
+			n = ini_getl(ModeT[nudata.mode.id].pName, "Partition2Size", -1, inifile);
+			mmc_head.Partition2Size = n ;
+
+			n = ini_getl(ModeT[nudata.mode.id].pName, "Partition3Size", -1, inifile);
+			mmc_head.Partition3Size = n ;
+
+			n = ini_getl(ModeT[nudata.mode.id].pName, "Partition4Size", -1, inifile);
+			mmc_head.Partition4Size = n ;
 
 		} else if(nudata.mode.id==MODE_NAND) {
 

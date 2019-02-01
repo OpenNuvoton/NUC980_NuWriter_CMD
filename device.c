@@ -34,6 +34,7 @@ int XUSBtoDevice(unsigned char *buf,unsigned int len)
 	pbuf=buf+sizeof(XBINHEAD);
 	file_len=len-sizeof(XBINHEAD);
 	fhead.filelen = file_len;
+	MSG_DEBUG("sizeof(XBINHEAD)=%d\n",sizeof(XBINHEAD));
 	if(xbinhead->sign==*(unsigned int *)SIGNATURE) {
 		MSG_DEBUG("passed xbinhead->address=%x\n",xbinhead->address);
 		fhead.address = xbinhead->address;//0x8000;
@@ -75,17 +76,16 @@ int XUSBtoDevice(unsigned char *buf,unsigned int len)
 int InfoFromDevice(void)
 {
 	int bResult;
+	unsigned int ack;
 	if(NUC_OpenUsb()<0) return -1;
-	MSG_DEBUG("NUC_OpenUsb\n");
 	NUC_SetType(0,INFO);
-
-
+	MSG_DEBUG("sizeof(INFO_T) %d INFO(%d)\n",sizeof(INFO_T),(long unsigned int)INFO);
 	bResult=NUC_WritePipe(0,(UCHAR *)nudata.user_def, sizeof(INFO_T));
 	if(bResult<0) goto EXIT;
 	bResult=NUC_ReadPipe(0,(UCHAR *)nudata.user_def, sizeof(INFO_T));
 	if(bResult<0) goto EXIT;
-
-	sleep(1);
+	bResult=NUC_ReadPipe(0,(UCHAR *)&ack,4);
+	if(bResult<0 || ack!=0x90) goto EXIT;
 	return 0;
 EXIT:
 

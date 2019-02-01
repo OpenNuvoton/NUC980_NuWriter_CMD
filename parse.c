@@ -90,8 +90,8 @@ int init_xusb(void)
 		ret=-1;
 		goto EXIT;
 	}
-	sleep(2);
 	NUC_CloseUsb();
+	sleep(3);
 	ret=NUC_OpenUsb();
 	if(ret<0) return -1;
 EXIT:
