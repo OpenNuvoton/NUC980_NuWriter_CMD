@@ -89,10 +89,9 @@ int ParsingIni(void)
 		n = ini_gets(ModeT[nudata.mode.id].pName, "using_dtb", "dummy", str, sizearray(str), inifile);
 		if(n==2) {
 			nudata.sdram->dtb_addr = 0;
-		} else
+		} else {
 			n = ini_gets(ModeT[nudata.mode.id].pName, "dtb_path", "dummy", str, sizearray(str), inifile);
-		strcpy(nudata.sdram->dtb_path,str);
-		{
+			strcpy(nudata.sdram->dtb_path,str);
 			n = ini_getl(ModeT[nudata.mode.id].pName, "dtb_addr", -1, inifile);
 			nudata.sdram->dtb_addr  = n;
 		}
