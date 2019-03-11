@@ -1406,18 +1406,71 @@ int UXmodem_SD(void)
 	char* lpBuffer;
 	int blockNum;
 	m_fhead=malloc(sizeof(NORBOOT_MMC_HEAD));
-
+	m_fhead->ReserveSize = mmc_head.ReserveSize;
 	m_fhead->PartitionNum = mmc_head.PartitionNum;
 	m_fhead->Partition1Size = mmc_head.Partition1Size;
 	m_fhead->Partition2Size = mmc_head.Partition2Size;
 	m_fhead->Partition3Size = mmc_head.Partition3Size;
 	m_fhead->Partition4Size = mmc_head.Partition4Size;
+
+	if(m_fhead->PartitionNum==0 || m_fhead->PartitionNum > 4) {
+		printf("PartitionNum , it should be 1 ~ 4\n");
+		goto EXIT;
+	}
 	if(NUC_OpenUsb()<0) return -1;
 	NUC_SetType(0,MMC);
 
 	if(nudata.image[idx].image_type==PACK) {
 		if(UXmodem_Pack()<0) goto EXIT;
 	} else {
+		if(nudata.run==RUN_FORMAT) {
+			int wait_pos=0;
+			unsigned int format_pos=0;
+			m_fhead->flag=FORMAT_ACTION;
+			if(m_fhead->PartitionNum==1) {
+				m_fhead->Partition1Size = nudata.user_def->EMMC_uBlock/(2*1024) - \
+				                          nudata.user_def->EMMC_uReserved;
+			} else if(m_fhead->PartitionNum==2) {
+				m_fhead->Partition2Size = nudata.user_def->EMMC_uBlock/(2*1024) - \
+				                          nudata.user_def->EMMC_uReserved - \
+				                          m_fhead->Partition1Size ;
+			} else if(m_fhead->PartitionNum==3) {
+				m_fhead->Partition3Size = nudata.user_def->EMMC_uBlock/(2*1024) - \
+				                          nudata.user_def->EMMC_uReserved - \
+				                          m_fhead->Partition1Size - \
+				                          m_fhead->Partition2Size;
+			} else {
+				m_fhead->Partition4Size = nudata.user_def->EMMC_uBlock/(2*1024) - \
+				                          nudata.user_def->EMMC_uReserved - \
+				                          m_fhead->Partition1Size - \
+				                          m_fhead->Partition2Size - \
+				                          m_fhead->Partition3Size;
+			}
+			MSG_DEBUG("num=%d p1=%d,p2=%d,p3=%d\n",m_fhead->PartitionNum,m_fhead->Partition1Size,m_fhead->Partition2Size,m_fhead->Partition3Size);
+			m_fhead->ReserveSize = m_fhead->ReserveSize * (2 * 1024);
+			bResult=NUC_WritePipe(0,(UCHAR *)m_fhead, sizeof(NORBOOT_MMC_HEAD));
+			bResult=NUC_ReadPipe(0,(unsigned char *)&ack,(int)sizeof(unsigned int));
+			format_pos=0;
+			printf("Format ... ");
+			show_progressbar(format_pos);
+			while(format_pos!=100) {
+				bResult=NUC_ReadPipe(0,(UCHAR *)&ack,4);
+				if(bResult<0) goto EXIT;
+				if(((ack>>16)&0xffff)) goto EXIT;
+				format_pos=ack&0xffff;
+				printf("Format ... ");
+				show_progressbar(format_pos);
+				if(format_pos==95) {
+					wait_pos++;
+					if(wait_pos>100) {
+						goto EXIT;
+					}
+				}
+
+			}
+			show_progressbar(100);
+			printf("Format ... Passed\n");
+		}
 
 		if(nudata.run==RUN_READ) {
 			unsigned char temp[BUF_SIZE];

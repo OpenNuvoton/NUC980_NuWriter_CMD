@@ -52,6 +52,7 @@
 #define RUN_PROGRAM_VERIFY	0x24
 #define RUN_READ						0x22
 #define RUN_ERASE						0x23
+#define RUN_FORMAT						0x25
 
 typedef struct _MODE_T {
 	int id;

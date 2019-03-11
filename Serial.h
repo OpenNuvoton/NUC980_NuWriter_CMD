@@ -223,6 +223,7 @@ typedef struct _NORBOOT_MMC_HEAD { //MMC(bootloader)
 	DWORD ReserveSize;  //unit of sector
 	UCHAR macaddr[8];
 	DWORD initSize;
+	UCHAR  FSType;
 	DWORD  PartitionNum;
 	DWORD  Partition1Size;  //unit of MB
 	DWORD  Partition2Size;  //unit of MB

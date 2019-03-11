@@ -31,6 +31,7 @@ MODE_T RunT[]= {
 	{RUN_PROGRAM_VERIFY,		"PROGRAM_VERIFY"		},
 	{RUN_READ,		"READ"	},
 	{RUN_ERASE,	"ERASE"		},
+	{RUN_FORMAT,	"FORMAT"	},
 	{0,		NULL		},
 };
 
@@ -170,7 +171,7 @@ int ParsingIni(void)
 		/* Parsing User defined */
 		IsYes = ini_gets(ModeT[nudata.mode.id].pName, "using_user_defined", "dummy", str, sizearray(str), inifile);
 
-		nudata.user_def->EMMC_uReserved = 1000 * 0x200;
+		nudata.user_def->EMMC_uReserved = 1000 ;
 		nudata.user_def->Nand_uBlockPerFlash = 1024;
 		nudata.user_def->Nand_uPagePerBlock =	64;
 
@@ -178,22 +179,26 @@ int ParsingIni(void)
 		if(nudata.mode.id==MODE_SD) {
 
 			n = ini_getl(ModeT[nudata.mode.id].pName, "reserved_size", -1, inifile);
-			nudata.user_def->EMMC_uReserved = n * 0x200;
+			nudata.user_def->EMMC_uReserved = n ;
 
-			n = ini_getl(ModeT[nudata.mode.id].pName, "PartitionNum", -1, inifile);
-			mmc_head.PartitionNum = n ;
+			n = ini_gets(ModeT[nudata.mode.id].pName, "using_format", "dummy", str, sizearray(str), inifile);
+			if(n==2) {
+				mmc_head.PartitionNum = 0 ;
+			} else {
+				n = ini_getl(ModeT[nudata.mode.id].pName, "partition_num", -1, inifile);
+				mmc_head.PartitionNum = n ;
+			}
 
-			n = ini_getl(ModeT[nudata.mode.id].pName, "Partition1Size", -1, inifile);
+			n = ini_getl(ModeT[nudata.mode.id].pName, "partition1_size", -1, inifile);
 			mmc_head.Partition1Size = n ;
 
-			n = ini_getl(ModeT[nudata.mode.id].pName, "Partition2Size", -1, inifile);
+			n = ini_getl(ModeT[nudata.mode.id].pName, "partition2_size", -1, inifile);
 			mmc_head.Partition2Size = n ;
 
-			n = ini_getl(ModeT[nudata.mode.id].pName, "Partition3Size", -1, inifile);
+			n = ini_getl(ModeT[nudata.mode.id].pName, "partition3_size", -1, inifile);
 			mmc_head.Partition3Size = n ;
 
-			n = ini_getl(ModeT[nudata.mode.id].pName, "Partition4Size", -1, inifile);
-			mmc_head.Partition4Size = n ;
+			mmc_head.Partition4Size = 0 ;
 
 		} else if(nudata.mode.id==MODE_NAND) {
 
