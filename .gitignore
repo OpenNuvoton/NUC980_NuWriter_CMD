@@ -1,0 +1,5 @@
+
+#files
+*.o
+
+/autom4te.cache
