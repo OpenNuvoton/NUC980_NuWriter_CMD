@@ -84,6 +84,7 @@ int NUC_OpenUsb(void)
 		libusb_exit(NULL);
 		return -1;
 	}
+	libusb_claim_interface(handle, 0);
 	libusb_reset_device(handle);
 #ifdef _WIN32
 	libusb_set_auto_detach_kernel_driver(handle, 1);
