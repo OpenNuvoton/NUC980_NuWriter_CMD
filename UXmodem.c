@@ -512,7 +512,7 @@ int UXmodem_NAND(void)
 								strncpy(ptr,line,strlen(line)-1);
 								ptr[strlen(line)-2]=0x0;
 								ptr+=(strlen(line)-1);
-							}else if(line[strlen(line)-1]==0x0A) {
+							} else if(line[strlen(line)-1]==0x0A) {
 								strncpy(ptr,line,strlen(line));
 								ptr[strlen(line)-1]=0x0;
 								ptr+=(strlen(line));
@@ -838,12 +838,12 @@ int UXmodem_SPINAND(void)
 						printf("The environment file size is less then 64KB\n");
 						goto EXIT;
 					}
-					lpBuffer = (unsigned char *)malloc(sizeof(unsigned char)*0x10000); //read file to buffer
-					memset(lpBuffer,0x00,0x10000);
+					lpBuffer = (unsigned char *)malloc(sizeof(unsigned char)*0x20000); //read file to buffer
+					memset(lpBuffer,0x00,0x20000);
 
 					((NORBOOT_NAND_HEAD *)m_fhead)->macaddr[7]=0;
 
-					m_fhead->filelen=0x10000;
+					m_fhead->filelen=0x20000;
 					m_fhead->type=nudata.image[idx].image_type;
 
 					NUC_WritePipe(0,(unsigned char*)m_fhead,sizeof(NORBOOT_NAND_HEAD));
@@ -858,7 +858,7 @@ int UXmodem_SPINAND(void)
 								strncpy(ptr,line,strlen(line)-1);
 								ptr[strlen(line)-2]=0x0;
 								ptr+=(strlen(line)-1);
-							}else if(line[strlen(line)-1]==0x0A) {
+							} else if(line[strlen(line)-1]==0x0A) {
 								strncpy(ptr,line,strlen(line));
 								ptr[strlen(line)-1]=0x0;
 								ptr+=(strlen(line));
@@ -870,7 +870,7 @@ int UXmodem_SPINAND(void)
 
 					}
 					*(unsigned int *)lpBuffer=CalculateCRC32((unsigned char *)(lpBuffer+4),0x10000-4);
-					file_len=0x10000;
+					file_len=0x20000;
 					break;
 				case LOADER:
 					m_fhead->no=0;
@@ -1209,7 +1209,7 @@ int UXmodem_SPI(void)
 								strncpy(ptr,line,strlen(line)-1);
 								ptr[strlen(line)-2]=0x0;
 								ptr+=(strlen(line)-1);
-							}else if(line[strlen(line)-1]==0x0A) {
+							} else if(line[strlen(line)-1]==0x0A) {
 								strncpy(ptr,line,strlen(line));
 								ptr[strlen(line)-1]=0x0;
 								ptr+=(strlen(line));
@@ -1616,7 +1616,7 @@ int UXmodem_SD(void)
 								strncpy(ptr,line,strlen(line)-1);
 								ptr[strlen(line)-2]=0x0;
 								ptr+=(strlen(line)-1);
-							}else if(line[strlen(line)-1]==0x0A) {
+							} else if(line[strlen(line)-1]==0x0A) {
 								strncpy(ptr,line,strlen(line));
 								ptr[strlen(line)-1]=0x0;
 								ptr+=(strlen(line));
