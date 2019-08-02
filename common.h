@@ -127,6 +127,7 @@ extern void NUC_CloseUsb(void);
 extern int NUC_SetType(int id,int type);
 extern int NUC_ReadPipe(int id,unsigned char *buf,int len);
 extern int NUC_WritePipe(int id,unsigned char *buf,int len);
+extern int get_device_num_with_vid_pid(libusb_context *ctx,unsigned int vendor_id,unsigned int product_id);
 
 /* device.c */
 extern int XUSBtoDevice(unsigned char *buf,unsigned int len);
@@ -153,4 +154,9 @@ libusb_device_handle *handle;
 
 extern MODE_T TypeT[];
 
+unsigned int csg_usb_index;
+#define MAX_DEV 8
+libusb_device *dev_arr[MAX_DEV];
+unsigned int dev_count;
+unsigned int enable_all_device;
 #endif

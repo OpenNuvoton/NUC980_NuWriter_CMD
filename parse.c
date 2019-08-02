@@ -91,7 +91,10 @@ int init_xusb(void)
 		goto EXIT;
 	}
 	NUC_CloseUsb();
-	sleep(3);
+	sleep(1);
+	while(get_device_num_with_vid_pid(ctx,USB_VENDOR_ID, USB_PRODUCT_ID)!=dev_count) {
+		sleep(1);
+	}
 	ret=NUC_OpenUsb();
 	if(ret<0) return -1;
 EXIT:
