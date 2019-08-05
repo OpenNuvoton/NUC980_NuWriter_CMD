@@ -12,6 +12,8 @@
 #include "config.h"
 #include "Serial.h"
 
+#define SPINAND_ENV_LEN 0x20000
+
 /* for upgrade */
 #define USBD_FLASH_SDRAM			0x0
 #define USBD_FLASH_NAND				0x3
