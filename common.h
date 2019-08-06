@@ -56,11 +56,15 @@
 #define RUN_ERASE						0x23
 #define RUN_FORMAT						0x25
 
+typedef struct _PACK_T {
+	unsigned int enable_pack;
+	char pack_path[256];
+} PACK_T,*PPACK_T;
+
 typedef struct _MODE_T {
 	int id;
 	char *pName;
 } MODE_T,*PMODE_T;
-
 
 typedef struct _IMAGE_T {
 	int image_idx;
@@ -144,6 +148,7 @@ extern int UXmodem_SPINAND(void);
 extern int UXmodem_NAND(void);
 extern int UXmodem_SPI(void);
 extern int UXmodem_SD(void);
+extern int UXmodem_PackImage(void);
 
 /* crc32.c */
 unsigned int CalculateCRC32(unsigned char * buf,unsigned int len);
@@ -159,4 +164,5 @@ unsigned int csg_usb_index;
 libusb_device *dev_arr[MAX_DEV];
 unsigned int dev_count;
 unsigned int enable_all_device;
+PACK_T pack;
 #endif

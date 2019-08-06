@@ -3,6 +3,9 @@
 
 //#include "devioctl.h"
 
+#define IBR_HEADER_LEN          (32)
+#define PACK_FOMRAT_HEADER_LEN  (48) // 12*4
+
 #define READ_TIMEOUT 10000
 #define MAX_FILESIZE 50*1024*1024 //50M
 
@@ -34,6 +37,8 @@
 #define DATA			0
 #define ENV				1
 #define LOADER		2
+#define PARTITION	3
+
 #define	PACK			3
 #define	IMAGE			4
 #define DATA_OOB	5

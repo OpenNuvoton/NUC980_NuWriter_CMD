@@ -53,6 +53,241 @@ unsigned char *GetDDRFormat(unsigned int *len)
 	return ddrbuf;
 }
 
+int UXmodem_PackImage(void)
+{
+	int storageSize=64*1024;
+	int idx,i,tmp;
+	PACK_HEAD pack_head;
+	FILE* wfp,*rfp;
+	int total=0;
+	unsigned int file_len;
+	wfp=fopen(pack.pack_path,"w+b");
+	if(!wfp) {
+		printf("File Open error\n");
+		return -1;
+	}
+	for(idx=0; idx<nudata.image_num; idx++) {
+		rfp=fopen(nudata.image[idx].image_path, "rb");
+		if(rfp==NULL) {
+			printf("Open read File Error(-w %s) \n",nudata.image[idx].image_path);
+			return -1;
+		}
+		fseek(rfp,0,SEEK_END);
+		file_len=ftell(rfp);
+		fclose(rfp);
+		total+=file_len;
+	}
+	memset((char *)&pack_head,0xff,sizeof(pack_head));
+	pack_head.actionFlag=PACK_ACTION;
+	pack_head.fileLength=total;
+	pack_head.num=nudata.image_num;
+
+	if(mmc_head.PartitionNum!=0 && nudata.mode.id == MODE_SD )
+		pack_head.num++;
+
+	//write  pack_head
+	fwrite((char *)&pack_head,sizeof(PACK_HEAD),1,wfp);
+
+	PACK_CHILD_HEAD child;
+	unsigned int len;
+	for(idx=0; idx<nudata.image_num; idx++) {
+
+		//if(*itemType!=PMTP) {
+		if(1) {
+			//itemStartblock=(ImageStartblock.begin()+i);
+			if(nudata.image[idx].image_type!=PARTITION) {
+				rfp=fopen(nudata.image[idx].image_path,"rb");
+				fseek(rfp,0,SEEK_END);
+				len= ftell(rfp);
+				fseek(rfp,0,SEEK_SET);
+			} else {
+				len= PACK_FOMRAT_HEADER_LEN; // partition header length
+			}
+
+			char *pBuffer=NULL;
+			char magic[4]= {' ','T','V','N'};
+			switch(nudata.image[idx].image_type) {
+			case LOADER: {
+				int ddrlen;
+				unsigned char *ddrbuf;
+
+				ddrbuf=GetDDRFormat(&ddrlen);
+				memset((char *)&child,0xff,sizeof(PACK_CHILD_HEAD));
+
+				//write  pack_child_head
+				child.filelen=len+ddrlen+32;
+				child.startaddr=nudata.image[idx].image_start_offset;
+				child.imagetype=LOADER;
+				fwrite((char *)&child,1,sizeof(PACK_CHILD_HEAD),wfp);
+
+				//write uboot head
+				fwrite((char *)magic,1,sizeof(magic),wfp);
+				//_stscanf_s(*itemExec,_T("%x"),&tmp);
+				fwrite((char *)&nudata.image[idx].image_exe_addr,1,4,wfp);
+				fwrite((char *)&len,1,4,wfp);
+				tmp=0xffffffff;
+				fwrite((char *)&tmp,1,4,wfp);
+#if(1)
+				//Add IBR header for NUC980 SPI NOR/NAND
+				if(nudata.mode.id == MODE_SPINAND) { //SPI NAND
+					tmp = nudata.user_def->SPINand_PageSize;
+					fwrite((char *)&tmp,1,2,wfp);
+					tmp = nudata.user_def->SPINand_SpareArea;
+					fwrite((char *)&tmp,1,2,wfp);
+					tmp = nudata.user_def->SPINand_QuadReadCmd;
+					fwrite((char *)&tmp,1,1,wfp);
+					tmp = nudata.user_def->SPINand_ReadStatusCmd;
+					fwrite((char *)&tmp,1,1,wfp);
+					tmp =nudata.user_def->SPINand_WriteStatusCmd;
+					fwrite((char *)&tmp,1,1,wfp);
+					tmp = nudata.user_def->SPINand_StatusValue;
+					fwrite((char *)&tmp,1,1,wfp);
+					tmp = nudata.user_def->SPINand_dummybyte;
+					fwrite((char *)&tmp,1,1,wfp);
+					tmp = 0xffffff;
+					fwrite((char *)&tmp,1,3,wfp);
+					tmp = 0xffffffff;
+					fwrite((char *)&tmp,1,4,wfp);
+				} else //SPI NOR
+#endif
+				{
+					tmp = 0x800;
+					fwrite((char *)&tmp,1,2,wfp);
+					tmp = 0x40;
+					fwrite((char *)&tmp,1,2,wfp);
+					tmp = nudata.user_def->SPI_QuadReadCmd;
+					fwrite((char *)&tmp,1,1,wfp);
+					tmp = nudata.user_def->SPI_ReadStatusCmd;
+					fwrite((char *)&tmp,1,1,wfp);
+					tmp = nudata.user_def->SPI_WriteStatusCmd;
+					fwrite((char *)&tmp,1,1,wfp);
+					tmp = nudata.user_def->SPI_StatusValue;
+					fwrite((char *)&tmp,1,1,wfp);
+					tmp = nudata.user_def->SPI_dummybyte;
+					fwrite((char *)&tmp,1,1,wfp);
+					tmp = 0xffffff;
+					fwrite((char *)&tmp,1,3,wfp);
+					tmp = 0xffffffff;
+					fwrite((char *)&tmp,1,4,wfp);
+				}
+
+				//write DDR
+				fwrite(ddrbuf,1,ddrlen,wfp);
+
+				pBuffer=(char *)malloc(len);
+
+				fread(pBuffer,1,len,rfp);
+				fwrite((char *)pBuffer,1,len,wfp);
+			}
+			break;
+			case ENV  :
+				memset((char *)&child,0xff,sizeof(PACK_CHILD_HEAD));
+				if(nudata.mode.id == MODE_SPINAND) {//spi nand
+					child.filelen=0x20000;
+					child.imagetype=ENV;
+					pBuffer=(char *)malloc(0x20000);
+					memset(pBuffer,0x0,0x20000);
+				} else {
+					child.filelen=0x10000;
+					child.imagetype=ENV;
+					pBuffer=(char *)malloc(0x10000);
+					memset(pBuffer,0x0,0x10000);
+				}
+				child.startaddr = nudata.image[idx].image_start_offset;
+				//-----------------------------------------------
+				fwrite((char *)&child,sizeof(PACK_CHILD_HEAD),1,wfp);
+				{
+					char line[256];
+					char* ptr=(char *)(pBuffer+4);
+					while (1) {
+						if (fgets(line,256, rfp) == NULL) break;
+						if(line[strlen(line)-2]==0x0D && line[strlen(line)-1]==0x0A) {
+							strncpy(ptr,line,strlen(line)-1);
+							ptr[strlen(line)-2]=0x0;
+							ptr+=(strlen(line)-1);
+						} else if(line[strlen(line)-1]==0x0A) {
+							strncpy(ptr,line,strlen(line));
+							ptr[strlen(line)-1]=0x0;
+							ptr+=(strlen(line));
+						} else {
+							strncpy(ptr,line,strlen(line));
+							ptr+=(strlen(line));
+						}
+					}
+				}
+				if(nudata.mode.id == MODE_SPINAND) {//spi nand
+					*(unsigned int *)pBuffer=CalculateCRC32((unsigned char *)(pBuffer+4),0x20000-4);
+					fwrite((char *)pBuffer,1,0x20000,wfp);
+				} else {
+					*(unsigned int *)pBuffer=CalculateCRC32((unsigned char *)(pBuffer+4),0x10000-4);
+					fwrite((char *)pBuffer,1,0x10000,wfp);
+				}
+				break;
+			case DATA : {
+				memset((char *)&child,0xff,sizeof(PACK_CHILD_HEAD));
+				child.filelen=len;
+				child.imagetype=DATA;
+				pBuffer=(char *)malloc(child.filelen);
+				child.startaddr = nudata.image[idx].image_start_offset;
+				//-----------------------------------------------
+				fwrite((char *)&child,sizeof(PACK_CHILD_HEAD),1,wfp);
+				fread(pBuffer,1,len,rfp);
+				fwrite((char *)pBuffer,1,len,wfp);
+			}
+			break;
+			case IMAGE:
+				memset((char *)&child,0xff,sizeof(PACK_CHILD_HEAD));
+				child.filelen=len;
+				child.imagetype=IMAGE;
+				pBuffer=(char *)malloc(child.filelen);
+				child.startaddr = nudata.image[idx].image_start_offset;
+				//-----------------------------------------------
+				fwrite((char *)&child,sizeof(PACK_CHILD_HEAD),1,wfp);
+				fread(pBuffer,1,len,rfp);
+				fwrite((char *)pBuffer,1,len,wfp);
+				break;
+			}
+			fclose(rfp);
+			if(pBuffer!=NULL) free(pBuffer);
+		}
+	}
+
+	if(mmc_head.PartitionNum!=0 && nudata.mode.id == MODE_SD ) {
+		memset((char *)&child,0xff,sizeof(PACK_CHILD_HEAD));
+		child.filelen= PACK_FOMRAT_HEADER_LEN; // partition header length
+		child.imagetype=PARTITION;
+		fwrite((char *)&child,1,sizeof(PACK_CHILD_HEAD),wfp);
+		tmp=0;
+		fwrite((char *)&tmp,1,4,wfp);
+		tmp= mmc_head.PartitionNum;
+		fwrite((char *)&tmp,1,4,wfp);
+		tmp = nudata.user_def->EMMC_uReserved;
+		fwrite((char *)&tmp,1,4,wfp);
+		tmp = 0xffffffff;
+		fwrite((char *)&tmp,1,4,wfp);
+		tmp=mmc_head.Partition1Size;
+		fwrite((char *)&tmp,1,4,wfp);
+		tmp = tmp*2*1024;//PartitionS1Size
+		fwrite((char *)&tmp,1,4,wfp);
+		tmp=mmc_head.Partition2Size;
+		fwrite((char *)&tmp,1,4,wfp);
+		tmp = tmp*2*1024;//PartitionS2Size
+		fwrite((char *)&tmp,1,4,wfp);
+		tmp=mmc_head.Partition3Size;
+		fwrite((char *)&tmp,1,4,wfp);
+		tmp = tmp*2*1024;//PartitionS3Size
+		fwrite((char *)&tmp,1,4,wfp);
+		tmp= mmc_head.Partition4Size;
+		fwrite((char *)&tmp,1,4,wfp);
+		tmp = tmp*2*1024;//PartitionS4Size
+		fwrite((char *)&tmp,1,4,wfp);
+	}
+	fclose(wfp);
+	printf("Output finish\n");
+
+	return 1;
+}
+
 int UXmodem_DTB(void)
 {
 	FILE *fp=NULL;

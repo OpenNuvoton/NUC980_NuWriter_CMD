@@ -55,6 +55,13 @@ int ParsingIni(void)
 
 	nudata.user_def = (INFO_T *)malloc(sizeof(INFO_T));
 	/* Parsing [RUN] */
+	n = ini_gets("RUN", "pack", "dummy", str, sizearray(str), inifile);
+	if(n==3) {
+		pack.enable_pack=1;
+		n = ini_gets("RUN", "pack_path", "dummy", str, sizearray(str), inifile);
+		strcpy(pack.pack_path,str);
+	}
+
 	n = ini_gets("RUN", "all_device", "dummy", str, sizearray(str), inifile);
 	if(n==3) enable_all_device=1;
 
@@ -375,31 +382,34 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	libusb_init(NULL);
-	if((dev_count=get_device_num_with_vid_pid(ctx,USB_VENDOR_ID, USB_PRODUCT_ID))==0) {
-		printf("Device not found\n");
-		libusb_exit(NULL);
-		return -1;
-	}
-	if(enable_all_device==1) {
-		printf("Number of devices: %d\n",dev_count);
-	}
-	do {
-		if(enable_all_device==1) {
-			printf("Burn device %d ...\n",csg_usb_index);
-		}
-
-
-		if(ParseFlashType()< 0) {
-			printf("Failed\n");
-			NUC_CloseUsb();
+	if(pack.enable_pack==1) {
+		MSG_DEBUG("UXmodem_PackImage\n");
+		return UXmodem_PackImage();
+	} else {
+		libusb_init(NULL);
+		if((dev_count=get_device_num_with_vid_pid(ctx,USB_VENDOR_ID, USB_PRODUCT_ID))==0) {
+			printf("Device not found\n");
 			libusb_exit(NULL);
 			return -1;
 		}
-		NUC_CloseUsb();
+		if(enable_all_device==1) {
+			printf("Number of devices: %d\n",dev_count);
+		}
+		do {
+			if(enable_all_device==1) {
+				printf("Burn device %d ...\n",csg_usb_index);
+			}
+			if(ParseFlashType()< 0) {
+				printf("Failed\n");
+				NUC_CloseUsb();
+				libusb_exit(NULL);
+				return -1;
+			}
+			NUC_CloseUsb();
 
-		csg_usb_index++;
-	} while(csg_usb_index<=dev_count && enable_all_device==1);
-	libusb_exit(NULL);
+			csg_usb_index++;
+		} while(csg_usb_index<=dev_count && enable_all_device==1);
+		libusb_exit(NULL);
+	}
 	return 0;
 }
