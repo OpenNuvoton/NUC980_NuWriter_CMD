@@ -358,6 +358,7 @@ int UXmodem_DTB(void)
 		if(bResult<0) goto EXIT;
 	}
 	show_progressbar(100);
+	NUC_CloseUsb();
 	fclose(fp);
 	return 0;
 EXIT:
