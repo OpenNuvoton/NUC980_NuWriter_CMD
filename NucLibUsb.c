@@ -97,7 +97,7 @@ void sort_dev_array(libusb_device **dev_arr,int count)
 	uint8_t port_numbers2[8];
 	int port_numbers_len1;
 	int port_numbers_len2;
-	for(int i=0; i<count-1; i++) {
+	for(i=0; i<count-1; i++) {
 		for(j=count -1; j>i; j--) {
 			port_numbers_len1 = libusb_get_port_numbers(dev_arr[j-1],port_numbers1,sizeof(port_numbers1));
 			port_numbers_len2 = libusb_get_port_numbers(dev_arr[j],port_numbers2,sizeof(port_numbers2));

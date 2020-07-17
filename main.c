@@ -322,16 +322,7 @@ int main(int argc, char **argv)
 	//printf("syscfg_dir=%s\n",syscfg_dir);
 	csg_usb_index = 1;
 	enable_all_device = 0;
-	if(path==NULL) {
-#ifndef _WIN32
-		//Data_Path[0]='.';
-		//Data_Path[1]='\0';
-#else
-		getcwd(Data_Path, 256);
-#endif
-	} else {
-		*path='\0';
-	}
+
 #ifndef _WIN32
 	//sprintf(Data_Path,"%s",NUDATA_PATH);
 	//fprintf(stderr,"Data_Path=%s\n",Data_Path);
