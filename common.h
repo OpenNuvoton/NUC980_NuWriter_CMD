@@ -1,6 +1,6 @@
 
-#ifndef COMMON_H
-#define COMMON_H
+#ifndef _HAVE_COMMON_H
+#define _HAVE_COMMON_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -108,8 +108,8 @@ typedef struct _NU_DATA_T {
 
 } NU_DATA_T;
 
-struct _NU_DATA_T nudata;
-NORBOOT_MMC_HEAD mmc_head;
+static struct _NU_DATA_T nudata;
+static NORBOOT_MMC_HEAD mmc_head;
 
 
 #define RUN_ON_XUSB 0x08FF0001
@@ -154,15 +154,15 @@ extern int UXmodem_PackImage(void);
 unsigned int CalculateCRC32(unsigned char * buf,unsigned int len);
 
 /* gloabel */
-libusb_context *ctx;
-libusb_device_handle *handle;
+static libusb_context *ctx;
+static libusb_device_handle *handle;
 
 extern MODE_T TypeT[];
 
-unsigned int csg_usb_index;
+static unsigned int csg_usb_index;
 #define MAX_DEV 8
-libusb_device *dev_arr[MAX_DEV];
-unsigned int dev_count;
-unsigned int enable_all_device;
-PACK_T pack;
+static libusb_device *dev_arr[MAX_DEV];
+static unsigned int dev_count;
+static unsigned int enable_all_device;
+static PACK_T pack;
 #endif
