@@ -8,6 +8,17 @@
 #include "minini/minIni.h"
 #include "common.h"
 
+struct _NU_DATA_T nudata;
+NORBOOT_MMC_HEAD mmc_head;
+libusb_context *ctx;
+libusb_device_handle *handle;
+MODE_T TypeT[];
+unsigned int csg_usb_index;
+libusb_device *dev_arr[MAX_DEV];
+unsigned int dev_count;
+unsigned int enable_all_device;
+PACK_T pack;
+
 MODE_T ModeT[]= {
 	{MODE_SDRAM,		"SDRAM"		},
 	{MODE_NAND,		"NAND"		},

@@ -104,6 +104,7 @@ typedef struct _INFO_T {
 	UINT8   SPINand_dummybyte;
 	UINT32  SPINand_BlockPerFlash;
 	UINT32  SPINand_PagePerBlock;
+	UINT8   SPINand_IsDieSelect;
 } INFO_T,*PINFO_T;
 
 typedef struct _PACK_CHILD_HEAD {

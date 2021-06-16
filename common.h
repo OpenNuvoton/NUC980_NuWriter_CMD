@@ -108,8 +108,8 @@ typedef struct _NU_DATA_T {
 
 } NU_DATA_T;
 
-static struct _NU_DATA_T nudata;
-static NORBOOT_MMC_HEAD mmc_head;
+extern struct _NU_DATA_T nudata;
+extern NORBOOT_MMC_HEAD mmc_head;
 
 
 #define RUN_ON_XUSB 0x08FF0001
@@ -154,15 +154,15 @@ extern int UXmodem_PackImage(void);
 unsigned int CalculateCRC32(unsigned char * buf,unsigned int len);
 
 /* gloabel */
-static libusb_context *ctx;
-static libusb_device_handle *handle;
+extern libusb_context *ctx;
+extern libusb_device_handle *handle;
 
 extern MODE_T TypeT[];
 
-static unsigned int csg_usb_index;
+extern unsigned int csg_usb_index;
 #define MAX_DEV 8
-static libusb_device *dev_arr[MAX_DEV];
-static unsigned int dev_count;
-static unsigned int enable_all_device;
-static PACK_T pack;
+extern libusb_device *dev_arr[MAX_DEV];
+extern unsigned int dev_count;
+extern unsigned int enable_all_device;
+extern PACK_T pack;
 #endif
