@@ -1291,7 +1291,7 @@ int UXmodem_SPI(void)
 	int idx;
 	FILE *fp;
 	int bResult,pos;
-	unsigned int scnt,rcnt,file_len,ack,total;
+	unsigned int scnt,rcnt,file_len,ack,total,blk_cnt;
 	unsigned char *pbuf,buf[BUF_SIZE];
 	NORBOOT_NAND_HEAD *m_fhead;
 	char DDR[256];
@@ -1486,6 +1486,7 @@ int UXmodem_SPI(void)
 				scnt=file_len/BUF_SIZE;
 				rcnt=file_len%BUF_SIZE;
 				total=0;
+				blk_cnt=SPI_BLOCK_SIZE;
 				while(scnt>0) {
 					bResult=NUC_WritePipe(0,(unsigned char*)pbuf,BUF_SIZE);
 					if(bResult<0)
@@ -1498,6 +1499,15 @@ int UXmodem_SPI(void)
 						goto EXIT;
 					}
 					scnt--;
+					if(blk_cnt==total&& nudata.image[idx].image_type != LOADER){
+						sleep(1);
+						bResult=NUC_ReadPipe(0,(UCHAR *)&ack,4);
+						if(bResult<0){
+							printf("NUC_ReadPipe fail\n");
+							goto EXIT;
+						}
+						blk_cnt+=SPI_BLOCK_SIZE;
+					}
 					printf("Write image%d %s ... ",idx,TypeT[nudata.image[idx].image_idx].pName);
 					show_progressbar(pos);
 				}
@@ -1509,6 +1519,7 @@ int UXmodem_SPI(void)
 					if(bResult<0 || ack!=rcnt) goto EXIT;
 				}
 				printf("Write image%d %s ... ",idx,TypeT[nudata.image[idx].image_idx].pName);
+				if(nudata.image[idx].image_type == LOADER){
 				show_progressbar(pos);
 				burn_pos=0;
 				while(burn_pos!=100) {
@@ -1520,6 +1531,12 @@ int UXmodem_SPI(void)
 						goto EXIT;
 					}
 				}
+				}else if((file_len%SPI_BLOCK_SIZE)!=0 ){
+					bResult=NUC_ReadPipe(0,(UCHAR *)&ack,4);
+					if(bResult<0) goto EXIT;
+				}
+				sleep(1);
+
 				show_progressbar(100);
 				printf("Write image%d %s ... Passed\n",idx,TypeT[nudata.image[idx].image_idx].pName);
 				if((nudata.run==RUN_PROGRAM_VERIFY)) {
@@ -1562,6 +1579,7 @@ int UXmodem_SPI(void)
 						bResult=NUC_ReadPipe(0,(UCHAR *)temp,BUF_SIZE);
 						if(bResult>=0) {
 							total+=rcnt;
+							ack=BUF_SIZE;
 							if(DataCompare(temp,pbuf,rcnt))
 								ack=BUF_SIZE;
 							else
@@ -1581,6 +1599,8 @@ int UXmodem_SPI(void)
 						printf("Verify image%d %s ... ",idx,TypeT[nudata.image[idx].image_idx].pName);
 						show_progressbar(pos);
 					}
+
+					sleep(1);
 					show_progressbar(100);
 					printf("Verify image%d %s... Passed\n",idx,TypeT[nudata.image[idx].image_idx].pName);
 				} //Verify_tag end

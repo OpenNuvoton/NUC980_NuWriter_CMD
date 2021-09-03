@@ -39,6 +39,8 @@
 #define DDRADDRESS	16
 #define BUF_SIZE 	4096
 
+#define SPI_BLOCK_SIZE (64*1024)
+
 #define MAX_IMAGE 12
 
 #define MODE_SDRAM		0
