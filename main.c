@@ -263,6 +263,8 @@ int ParsingIni(void)
 			n = ini_getl(ModeT[nudata.mode.id].pName, "pageperflash", -1, inifile);
 			nudata.user_def->SPINand_PagePerBlock = n;
 
+			n = ini_getl(ModeT[nudata.mode.id].pName, "multichip", -1, inifile);
+                        nudata.user_def->SPINand_IsDieSelect = n;
 			if(IsYes == 3)
 				nudata.user_def->SPINand_uIsUserConfig =1;
 			else

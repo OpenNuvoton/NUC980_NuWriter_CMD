@@ -1239,7 +1239,7 @@ int UXmodem_SPINAND(void)
 
 		if(nudata.run==RUN_ERASE) {  //Erase SPI
 			int wait_pos=0;
-			unsigned int erase_pos=0;
+			unsigned int erase_pos=0, BlockPerFlash;
 			m_fhead->flag=ERASE_ACTION;
 			m_fhead->flashoffset = nudata.erase->start_blocks; //start erase block
 			m_fhead->execaddr=nudata.erase->offset_blocks;  //erase block length
@@ -1256,23 +1256,36 @@ int UXmodem_SPINAND(void)
 
 			bResult=NUC_WritePipe(0,(UCHAR *)m_fhead, sizeof(NORBOOT_NAND_HEAD));
 			bResult=NUC_ReadPipe(0,(UCHAR *)&ack,4);
+			if(bResult<0) {
+				printf("SPI NAND Erase error\n");
+				goto EXIT;
+			}
+			bResult=NUC_ReadPipe(0, (UCHAR *)&BlockPerFlash,4);
+			if(bResult<0) {
+				printf("SPI NAND  BlockPerFlash error !\n");
+				goto EXIT;
+			}
 			erase_pos=0;
-			printf("Erase ... ");
+			printf("Erase ...");
 			show_progressbar(erase_pos);
 			while(erase_pos!=100) {
+				usleep(1);
 				bResult=NUC_ReadPipe(0,(UCHAR *)&ack,4);
 				if(bResult<0) goto EXIT;
-				if(((ack>>16)&0xffff)) goto EXIT;
-				erase_pos=ack&0xffff;
-				printf("Erase ... ");
-				show_progressbar(erase_pos);
-				if(erase_pos==95) {
-					wait_pos++;
-					if(wait_pos>100) {
-						goto EXIT;
+				if(ack < BlockPerFlash)
+				{
+					erase_pos = (int)(((float)(((float)ack/(float)BlockPerFlash))*100));
+					if(ack == BlockPerFlash-1) {
+						if(erase_pos < 99)
+							erase_pos = 100;
+						else
+							erase_pos++;
 					}
-				}
 
+				} else {
+					printf("SPI NAND Erase error. ack=%d !\n",ack);
+					goto EXIT;
+				}
 			}
 			show_progressbar(100);
 			printf("Erase ... Passed\n");
