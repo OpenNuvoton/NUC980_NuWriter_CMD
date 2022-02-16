@@ -1701,7 +1701,7 @@ int UXmodem_SD(void)
 	if(NUC_OpenUsb()<0) return -1;
 	NUC_SetType(0,MMC);
 
-	if(nudata.image[idx].image_type==PACK) {
+	if(nudata.image[0].image_type==PACK) {
 		if(UXmodem_Pack()<0) goto EXIT;
 	} else {
 		if(nudata.run==RUN_FORMAT) {
