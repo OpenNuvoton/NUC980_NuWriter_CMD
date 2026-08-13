@@ -459,7 +459,7 @@ int UXmodem_Pack(void)
 	FILE *fp;
 	int i;
 	int bResult,pos;
-	unsigned int scnt,rcnt,file_len,ack,total;
+	unsigned int scnt,rcnt,file_len,ack,total,count;
 	unsigned char *pbuf;
 	unsigned int magic;
 	char* lpBuffer;
@@ -535,18 +535,24 @@ int UXmodem_Pack(void)
 		scnt=child.filelen/BUF_SIZE;
 		rcnt=child.filelen%BUF_SIZE;
 		total=0;
+		count=0;
 
 		while(scnt>0) {
 			bResult=NUC_WritePipe(0,(UCHAR *)pbuf, BUF_SIZE);
 			if(bResult<0) goto EXIT;
 			pbuf+=BUF_SIZE;
 			total+=BUF_SIZE;
+			count+=BUF_SIZE;
 			pos=(int)(((float)(((float)total/(float)child.filelen))*100));
 			printf("Pack image%d ... ",i);
 			show_progressbar(pos);
 			bResult=NUC_ReadPipe(0,(UCHAR *)&ack,4);
 			if(bResult<0) goto EXIT;
 			scnt--;
+			if ((nudata.mode.id==MODE_SPINOR) && ((count % 0x10000) == 0)) {
+				bResult=NUC_ReadPipe(0,(UCHAR *)&ack,4);
+				if(bResult<0) goto EXIT;
+			}
 		}
 		if(rcnt>0) {
 
@@ -564,7 +570,7 @@ int UXmodem_Pack(void)
 		if(nudata.mode.id==MODE_NAND || nudata.mode.id==MODE_SD) {
 			bResult=NUC_ReadPipe(0,(UCHAR *)&blockNum,4);
 			if(bResult<0) goto EXIT;
-		} else if(nudata.mode.id==MODE_SPINOR) {
+		} else if ((nudata.mode.id==MODE_SPINOR) && (rcnt>0)) {
 			burn_pos=0;
 			while(burn_pos!=100) {
 				bResult=NUC_ReadPipe(0,(UCHAR *)&ack,4);
