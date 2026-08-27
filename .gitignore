@@ -1,6 +1,7 @@
 #files
 *.o
 *.log
+*.Identifier
 
 .deps/
 autom4te.cache/
